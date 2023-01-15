@@ -1,0 +1,9 @@
+### Ignore macOS stuff ###
+.DS_Store
+._*
+
+# Ignore Compiled files
+build/
+
+# Ignore Releases
+Rlvm.zip
