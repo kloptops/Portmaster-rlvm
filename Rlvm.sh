@@ -9,7 +9,9 @@ else
 fi
 
 source $controlfolder/control.txt
-source $controlfolder/tasksetter
+if [ -z ${TASKSET+x} ]; then
+  source $controlfolder/tasksetter
+fi
 
 get_controls
 
@@ -19,7 +21,7 @@ cd $GAMEDIR
 # Set this to the game you want to play
 GAME="GAMENAME"
 
-if [[ !-d "${GAMEDIR}/games/${GAME}" ]]; then
+if [[ ! -d "${GAMEDIR}/games/${GAME}" ]]; then
   echo "No game files found." > ./log.txt
   $ESUDO systemctl restart oga_events &
   exit 1
