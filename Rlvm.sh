@@ -27,6 +27,10 @@ if [[ ! -d "${GAMEDIR}/games/${GAME}" ]]; then
   exit 1
 fi
 
+if [[ -f "$GAMEDIR/fonts/msgothic.ttc" ]]; then
+  MSGOTHIC="--font $GAMEDIR/fonts/msgothic.ttc"
+fi
+
 # Grab text output...
 $ESUDO chmod 666 /dev/tty0
 printf "\033c" > /dev/tty0
@@ -46,7 +50,7 @@ export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 export LD_LIBRARY_PATH="$GAMEDIR/libs:$LD_LIBRARY_PATH:/usr/lib32"
 
 $GPTOKEYB "rlvm" -c "${GAMEDIR}/rlvm.gptk" &
-$TASKSET ./rlvm --font "${GAMEDIR}/msgothic.ttc" "${GAMEDIR}/games/${GAME}/" 2>&1 | tee -a ./log.txt
+$TASKSET ./rlvm $MSGOTHIC "${GAMEDIR}/games/${GAME}/" 2>&1 | tee -a ./log.txt
 
 $ESUDO kill -9 $(pidof gptokeyb)
 unset LD_LIBRARY_PATH
