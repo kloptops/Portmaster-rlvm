@@ -62,26 +62,29 @@ if [ -z ${GAME+x} ]; then
     VN_DIRS+=("${VN_DIR}")
   }
 
+  if [ "${#VN_DIRS[@]}" -eq 1 ]; then
+    GAME="${VN_DIRS[0]}"
+  else
+    GAME_SELECT=(dialog \
+      --backtitle "Real Life VM" \
+      --title "[ Select Game ]" \
+      --clear \
+      --menu "Choose Your Game" $height $width 15)
 
-  GAME_SELECT=(dialog \
-    --backtitle "Real Life VM" \
-    --title "[ Select Game ]" \
-    --clear \
-    --menu "Choose Your Game" $height $width 15)
+    VN_CHOICE=$("${GAME_SELECT[@]}" "${VN_CHOICES[@]}" 2>&1 > $CUR_TTY)
+    if [ $? != 0 ]; then
+      $ESUDO kill -9 $(pidof gptokeyb)
+      $ESUDO systemctl restart oga_events &
+      echo "QUIT: ${VN_CHOICE}" 2>&1 | tee -a ./log.txt
+      exit 1;
+    fi
 
-  VN_CHOICE=$("${GAME_SELECT[@]}" "${VN_CHOICES[@]}" 2>&1 > $CUR_TTY)
-  if [ $? != 0 ]; then
+    echo "${VN_OPT} -> ${VN_CHOICE} -> ${VN_DIRS[$VN_CHOICE]}" 2>&1 | tee -a ./log.txt
+
     $ESUDO kill -9 $(pidof gptokeyb)
-    $ESUDO systemctl restart oga_events &
-    echo "QUIT: ${VN_CHOICE}" 2>&1 | tee -a ./log.txt
-    exit 1;
+
+    GAME="${VN_DIRS[$VN_CHOICE]}"
   fi
-
-  echo "${VN_OPT} -> ${VN_CHOICE} -> ${VN_DIRS[$VN_CHOICE]}" 2>&1 | tee -a ./log.txt
-
-  $ESUDO kill -9 $(pidof gptokeyb)
-
-  GAME="${VN_DIRS[$VN_CHOICE]}"
 fi
 
 printf "\033c" > $CUR_TTY
