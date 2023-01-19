@@ -15,29 +15,81 @@ fi
 
 get_controls
 
+## TODO: Change to PortMaster/tty when Johnnyonflame merges the changes in,
+CUR_TTY=/dev/tty0
+
 GAMEDIR="/$directory/ports/rlvm"
 cd $GAMEDIR
 
-# Set this to the game you want to play
-GAME="GAMENAME"
+width=55
+height=15
 
-if [[ ! -d "${GAMEDIR}/games/${GAME}" ]]; then
-  echo "No game files found." > ./log.txt
-  $ESUDO systemctl restart oga_events &
-  exit 1
+$ESUDO chmod 666 $CUR_TTY
+export TERM=linux
+printf "\033c" > $CUR_TTY
+
+if [ -z ${GAME+x} ]; then
+
+  printf "\e[?25h" > $CUR_TTY
+  dialog --clear
+
+
+  $GPTOKEYB "dialog" -c "${GAMEDIR}/rlvm-menu.gptk" &
+
+  GAMEEXES=( $(find games/ -maxdepth 2 -iname 'gameexe.ini') );
+  if [ "${#GAMEEXES[@]}" -eq 0 ]; then
+    dialog \
+    --backtitle "Real Life VM" \
+    --title "[ Error ]" \
+    --clear \
+    --msgbox "No Games Found!" $height $width > $CUR_TTY
+
+    $ESUDO kill -9 $(pidof gptokeyb)
+    $ESUDO systemctl restart oga_events &
+    exit 1;
+  fi
+
+  VN_CHOICES=()
+  VN_DIRS=()
+  for i in "${!GAMEEXES[@]}"; {
+    VN_PATH=$(dirname "${GAMEEXES[$i]}")
+    VN_DIR=${VN_PATH##*/}
+    VN_NAME="${VN_DIR}"
+    ## This breaks dialog :(
+    # VN_NAME=$(iconv -f CP932 -t UTF-8 "${GAMEEXES[$i]}"; |  grep -G '#CAPTION=' | cut -d '"' -f 2)
+    echo "$i -> ${VN_DIR} -> ${VN_NAME}" 2>&1 | tee -a ./log.txt
+    VN_CHOICES+=($i "${VN_NAME}")
+    VN_DIRS+=("${VN_DIR}")
+  }
+
+
+  GAME_SELECT=(dialog \
+    --backtitle "Real Life VM" \
+    --title "[ Select Game ]" \
+    --clear \
+    --menu "Choose Your Game" $height $width 15)
+
+  VN_CHOICE=$("${GAME_SELECT[@]}" "${VN_CHOICES[@]}" 2>&1 > $CUR_TTY)
+  if [ $? != 0 ]; then
+    $ESUDO kill -9 $(pidof gptokeyb)
+    $ESUDO systemctl restart oga_events &
+    echo "QUIT: ${VN_CHOICE}" 2>&1 | tee -a ./log.txt
+    exit 1;
+  fi
+
+  echo "${VN_OPT} -> ${VN_CHOICE} -> ${VN_DIRS[$VN_CHOICE]}" 2>&1 | tee -a ./log.txt
+
+  $ESUDO kill -9 $(pidof gptokeyb)
+
+  GAME="${VN_DIRS[$VN_CHOICE]}"
 fi
+
+printf "\033c" > $CUR_TTY
+## RUN SCRIPT HERE
 
 if [[ -f "$GAMEDIR/fonts/msgothic.ttc" ]]; then
   MSGOTHIC="--font $GAMEDIR/fonts/msgothic.ttc"
 fi
-
-# Grab text output...
-$ESUDO chmod 666 /dev/tty0
-printf "\033c" > /dev/tty0
-
-
-$ESUDO chmod 666 /dev/tty1
-$ESUDO chmod 666 /dev/uinput
 
 export LIBGL_ES=2
 export LIBGL_GL=21
@@ -58,4 +110,4 @@ unset SDL_GAMECONTROLLERCONFIG
 $ESUDO systemctl restart oga_events &
 
 # Disable console
-printf "\033c" >> /dev/tty0
+printf "\033c" > $CUR_TTY
