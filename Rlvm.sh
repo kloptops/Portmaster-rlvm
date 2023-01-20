@@ -31,19 +31,20 @@ printf "\033c" > $CUR_TTY
 if [ -z ${GAME+x} ]; then
 
   printf "\e[?25h" > $CUR_TTY
-  dialog --clear
+  dialog --clear > $CUR_TTY
 
 
   $GPTOKEYB "dialog" -c "${GAMEDIR}/rlvm-menu.gptk" &
 
-  GAMEEXES=( $(find games/ -maxdepth 2 -iname 'gameexe.ini') );
+  GAMEEXES=( $(find games/ -maxdepth 2 -iname 'gameexe.ini' | sort) );
   if [ "${#GAMEEXES[@]}" -eq 0 ]; then
     dialog \
-    --backtitle "Real Life VM" \
+    --backtitle "Real Live VM" \
     --title "[ Error ]" \
     --clear \
     --msgbox "No Games Found!" $height $width > $CUR_TTY
 
+    printf "\033c" > $CUR_TTY
     $ESUDO kill -9 $(pidof gptokeyb)
     $ESUDO systemctl restart oga_events &
     exit 1;
@@ -51,40 +52,64 @@ if [ -z ${GAME+x} ]; then
 
   VN_CHOICES=()
   VN_DIRS=()
-  for i in "${!GAMEEXES[@]}"; {
+
+  OFFSET=0
+  if [ -f "${GAMEDIR}/save/last_game" ]; then
+    LAST_GAME=$(cat "${GAMEDIR}/save/last_game")
+    VN_CHOICES+=(0 "$LAST_GAME")
+    VN_DIRS+=("$LAST_GAME")
+    echo "0 -> **${LAST_GAME}**" 2>&1 | tee -a ./log.txt
+    OFFSET=1
+  else
+    LAST_GAME=""
+  fi
+
+  for i in "${!GAMEEXES[@]}"; do
     VN_PATH=$(dirname "${GAMEEXES[$i]}")
     VN_DIR=${VN_PATH##*/}
-    VN_NAME="${VN_DIR}"
-    ## This breaks dialog :(
-    # VN_NAME=$(iconv -f CP932 -t UTF-8 "${GAMEEXES[$i]}"; |  grep -G '#CAPTION=' | cut -d '"' -f 2)
-    echo "$i -> ${VN_DIR} -> ${VN_NAME}" 2>&1 | tee -a ./log.txt
-    VN_CHOICES+=($i "${VN_NAME}")
-    VN_DIRS+=("${VN_DIR}")
-  }
+
+    if [ "$VN_DIR" = "$LAST_GAME" ]; then
+      OFFSET=$(($OFFSET-1))
+    else
+      i=$(($i+$OFFSET))
+      echo "$i -> ${VN_DIR}" 2>&1 | tee -a ./log.txt
+      VN_CHOICES+=($i "${VN_DIR}")
+      VN_DIRS+=("${VN_DIR}")
+    fi
+  done
 
   if [ "${#VN_DIRS[@]}" -eq 1 ]; then
     GAME="${VN_DIRS[0]}"
   else
     GAME_SELECT=(dialog \
-      --backtitle "Real Life VM" \
+      --backtitle "Real Live VM" \
       --title "[ Select Game ]" \
       --clear \
       --menu "Choose Your Game" $height $width 15)
+
 
     VN_CHOICE=$("${GAME_SELECT[@]}" "${VN_CHOICES[@]}" 2>&1 > $CUR_TTY)
     if [ $? != 0 ]; then
       $ESUDO kill -9 $(pidof gptokeyb)
       $ESUDO systemctl restart oga_events &
       echo "QUIT: ${VN_CHOICE}" 2>&1 | tee -a ./log.txt
+      printf "\033c" > $CUR_TTY
       exit 1;
     fi
 
-    echo "${VN_OPT} -> ${VN_CHOICE} -> ${VN_DIRS[$VN_CHOICE]}" 2>&1 | tee -a ./log.txt
+    echo "${VN_CHOICE} -> ${VN_DIRS[$VN_CHOICE]}" 2>&1 | tee -a ./log.txt
 
     $ESUDO kill -9 $(pidof gptokeyb)
 
     GAME="${VN_DIRS[$VN_CHOICE]}"
   fi
+
+  if [ ! -d "${GAMEDIR}/save" ]; then
+    mkdir "${GAMEDIR}/save"
+  fi
+
+  # Save the selected game as the last game
+  printf "$GAME" > "${GAMEDIR}/save/last_game"
 fi
 
 printf "\033c" > $CUR_TTY
@@ -103,6 +128,7 @@ export SDL12COMPAT_USE_GAME_CONTROLLERS=1
 export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 
 export LD_LIBRARY_PATH="$GAMEDIR/libs:$LD_LIBRARY_PATH:/usr/lib32"
+export HOME="${GAMEDIR}"
 
 $GPTOKEYB "rlvm" -c "${GAMEDIR}/rlvm.gptk" &
 $TASKSET ./rlvm $MSGOTHIC "${GAMEDIR}/games/${GAME}/" 2>&1 | tee -a ./log.txt

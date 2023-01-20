@@ -6,15 +6,17 @@ This is the configuration files and the required steps to build the rlvm engine 
 
 # Installation
 
-Use portmaster to install rlvm, copy the desired game into `{PORTFOLDER}/rlvm/games/{GAMENAME}`. On launch it will ask you to choose the game if it detects multiple games.
+Use portmaster to install rlvm, copy the desired game or games into `{PORTFOLDER}/rlvm/games/{GAMENAME}`. On launch it will ask you to choose the game if it detects multiple games.
 
 # Controls
 
-- L1/L2/B: Right Click
+- L1/B: Right Click
+- L2: Fast Forward
 - R1/R2/A: Left Click
 - Start: enter
 - Select: escape
 - Left Analog Stick: Move cursor
+- Select + L1: display system info
 
 ## Required libs
 
@@ -39,7 +41,7 @@ Use portmaster to install rlvm, copy the desired game into `{PORTFOLDER}/rlvm/ga
 
     cd rlvm
 
-    scons --puresdl --release
+    scons --puresdl --release --portmaster
 
 
 At the end, the `build/rlvm` file is what you want.
@@ -54,6 +56,8 @@ At the end, the `build/rlvm` file is what you want.
 - [ ] Fix HD games
 - [x] Figure out controls.
 - [x] Figure out why menus are crashing.
+- [x] Fix save file location
+- [x] Fix font searching
 
 
 # Thanks
