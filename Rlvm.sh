@@ -126,7 +126,7 @@ if [ -z ${GAME+x} ]; then
 
       IN_GAME="${VN_DIRS[$IN_CHOICE]}"
 
-      printf "#!/usr/bin/bash\nGAME=$IN_GAME $PORTDIR/Rlvm.sh\n" > "$PORTDIR/$IN_GAME.sh"
+      printf "#!/usr/bin/bash\nGAME=$IN_GAME $PORTDIR/Rlvm.sh\n" | $ESUDO tee "$PORTDIR/$IN_GAME.sh"
 
       dialog \
         --backtitle "Real Live VM" \
@@ -148,11 +148,10 @@ if [ -z ${GAME+x} ]; then
   fi
 
   if [ ! -d "${GAMEDIR}/save" ]; then
-    mkdir "${GAMEDIR}/save"
+    $ESUDO mkdir "${GAMEDIR}/save"
   fi
-
   # Save the selected game as the last game
-  printf "$GAME" > "${GAMEDIR}/save/last_game"
+  printf "$GAME" | $ESUDO tee "${GAMEDIR}/save/last_game"
 fi
 
 printf "\033c" > $CUR_TTY
