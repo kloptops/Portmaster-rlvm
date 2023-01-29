@@ -33,7 +33,7 @@ Use portmaster to install rlvm, copy the desired game or games into `{PORTFOLDER
   - libbrotlicommon.so.1
   - libbrotlidec.so.1
   - libfreetype.so.6
-  - liblzma.so.5*
+  - liblzma.so.5
 
 ## Building
 
@@ -50,10 +50,11 @@ At the end, the `build/rlvm` file is what you want.
 # TODO:
 
 - [x] Auto detect which games are found in the games directory, bring up a list if there is more than 1 game detected.
-- [ ] Add option to add a launch script in the ports folder, for direct launching of the game, so info can be scraped.
+- [ ] Add option to add a launch script in the ports folder, for direct launching of the game, so game info can be scraped.
 - [ ] Write installation instructions.
 - [ ] Write better info
 - [ ] Fix HD games
+- [ ] Fix resolution 
 - [x] Figure out controls.
 - [x] Figure out why menus are crashing.
 - [x] Fix save file location

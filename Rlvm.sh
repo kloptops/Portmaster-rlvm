@@ -1,5 +1,9 @@
 #!/bin/bash
 
+## Set screen resolution here
+#export PORTMASTER_SCREEN_WIDTH=480
+#export PORTMASTER_SCREEN_HEIGHT=320
+
 if [ -d "/opt/system/Tools/PortMaster/" ]; then
   controlfolder="/opt/system/Tools/PortMaster"
 elif [ -d "/opt/tools/PortMaster/" ]; then
@@ -26,6 +30,8 @@ width=55
 height=15
 
 $ESUDO chmod 666 $CUR_TTY
+$ESUDO touch log.txt
+$ESUDO chmod 666 log.txt
 export TERM=linux
 printf "\033c" > $CUR_TTY
 
@@ -103,7 +109,7 @@ if [ -z ${GAME+x} ]; then
     if [ $? != 0 ]; then
       $ESUDO kill -9 $(pidof gptokeyb)
       $ESUDO systemctl restart oga_events &
-      echo "QUIT: ${VN_CHOICE}" 2>&1 | tee -a ./log.txt
+      echo "QUIT: ${VN_CHOICE}" 2>&1 | $ESUDO tee -a ./log.txt
       printf "\033c" > $CUR_TTY
       exit 1;
     fi
@@ -140,7 +146,7 @@ if [ -z ${GAME+x} ]; then
       exit 0;
     fi
 
-    echo "${VN_CHOICE} -> ${VN_DIRS[$VN_CHOICE]}" 2>&1 | tee -a ./log.txt
+    echo "C ${VN_CHOICE} -> ${VN_DIRS[$VN_CHOICE]}" 2>&1 | tee -a ./log.txt
 
     $ESUDO kill -9 $(pidof gptokeyb)
 
@@ -164,16 +170,18 @@ fi
 export LIBGL_ES=2
 export LIBGL_GL=21
 export LIBGL_FB=4
-export LIBGL_NOERROR=0
+#export LIBGL_NOERROR=0
 
+export SDL12COMPAT_DEBUG_LOGGING=1
 export SDL12COMPAT_USE_GAME_CONTROLLERS=1
 export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 
 export LD_LIBRARY_PATH="$GAMEDIR/libs:$LD_LIBRARY_PATH:/usr/lib32"
+
 export HOME="${GAMEDIR}"
 
 $GPTOKEYB "rlvm" -c "${GAMEDIR}/rlvm.gptk" &
-$TASKSET ./rlvm $MSGOTHIC "${GAMEDIR}/games/${GAME}/" 2>&1 | tee -a ./log.txt
+$TASKSET ./rlvm $MSGOTHIC "${GAMEDIR}/games/${GAME}/" 2>&1 | $ESUDO tee -a ./log.txt
 
 $ESUDO kill -9 $(pidof gptokeyb)
 unset LD_LIBRARY_PATH
