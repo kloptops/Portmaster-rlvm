@@ -167,10 +167,17 @@ if [[ -f "$GAMEDIR/fonts/msgothic.ttc" ]]; then
   MSGOTHIC="--font $GAMEDIR/fonts/msgothic.ttc"
 fi
 
+if [[ $LOWRES == "Y" ]]; then
+  export PORTMASTER_SCREEN_WIDTH=480
+  export PORTMASTER_SCREEN_HEIGHT=320
+else
+  export PORTMASTER_SCREEN_WIDTH=640
+  export PORTMASTER_SCREEN_HEIGHT=480
+fi
+
 export LIBGL_ES=2
 export LIBGL_GL=21
 export LIBGL_FB=4
-#export LIBGL_NOERROR=0
 
 export SDL12COMPAT_DEBUG_LOGGING=1
 export SDL12COMPAT_USE_GAME_CONTROLLERS=1
@@ -178,7 +185,7 @@ export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 
 export LD_LIBRARY_PATH="$GAMEDIR/libs:$LD_LIBRARY_PATH:/usr/lib32"
 
-export HOME="${GAMEDIR}"
+export PORTMASTER_GAMEPATH="${GAMEDIR}"
 
 $GPTOKEYB "rlvm" -c "${GAMEDIR}/rlvm.gptk" &
 $TASKSET ./rlvm $MSGOTHIC "${GAMEDIR}/games/${GAME}/" 2>&1 | $ESUDO tee -a ./log.txt
