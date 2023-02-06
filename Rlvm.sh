@@ -1,9 +1,5 @@
 #!/bin/bash
 
-## Set screen resolution here
-#export PORTMASTER_SCREEN_WIDTH=480
-#export PORTMASTER_SCREEN_HEIGHT=320
-
 if [ -d "/opt/system/Tools/PortMaster/" ]; then
   controlfolder="/opt/system/Tools/PortMaster"
 elif [ -d "/opt/tools/PortMaster/" ]; then
@@ -167,20 +163,24 @@ if [[ -f "$GAMEDIR/fonts/msgothic.ttc" ]]; then
   MSGOTHIC="--font $GAMEDIR/fonts/msgothic.ttc"
 fi
 
-if [[ $LOWRES == "Y" ]]; then
-  export PORTMASTER_SCREEN_WIDTH=480
-  export PORTMASTER_SCREEN_HEIGHT=320
-else
-  export PORTMASTER_SCREEN_WIDTH=640
-  export PORTMASTER_SCREEN_HEIGHT=480
-fi
+## Not needed until resolution scaling is fixed.
+# if [[ $LOWRES == "Y" ]]; then
+#   export PORTMASTER_SCREEN_WIDTH=480
+#   export PORTMASTER_SCREEN_HEIGHT=320
+# else
+#   export PORTMASTER_SCREEN_WIDTH=640
+#   export PORTMASTER_SCREEN_HEIGHT=480
+# fi
 
 export LIBGL_ES=2
 export LIBGL_GL=21
 export LIBGL_FB=4
 
+export SDL12COMPAT_OPENGL_SCALING=1
+export SDL12COMPAT_SCALE_METHOD=linear
 export SDL12COMPAT_DEBUG_LOGGING=1
 export SDL12COMPAT_USE_GAME_CONTROLLERS=1
+
 export SDL_GAMECONTROLLERCONFIG="$sdl_controllerconfig"
 
 export LD_LIBRARY_PATH="$GAMEDIR/libs:$LD_LIBRARY_PATH:/usr/lib32"

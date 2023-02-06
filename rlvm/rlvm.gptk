@@ -29,5 +29,5 @@ mouse_delay = 16
 
 deadzone_mode = axial
 deadzone = 1000
-deadzone_scale = 10
+deadzone_scale = 7
 deadzone_delay = 16
